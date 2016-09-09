@@ -2,7 +2,7 @@
 
 
 VERSION = "0.0.1"
-APPNAME = "group-manager"
+APPNAME = "consumer"
 
 from waflib import Logs, Utils, Context
 import os
@@ -12,7 +12,7 @@ def options(opt):
     opt.load(['boost', 'default-compiler-flags'],
              tooldir=['.waf-tools'])
 
-    syncopt = opt.add_option_group ("GROUP-MANAGER Options")
+    syncopt = opt.add_option_group ("CONSUMER Options")
 
     syncopt.add_option('--debug', action='store_true', default=False, dest='debug',
                        help='''debugging mode''')
@@ -39,8 +39,8 @@ def configure(conf):
     conf.write_config_header('config.hpp')
 
 def build(bld):
-    bld(target="group-manager-objects",
-        name="group-manager-objects",
+    bld(target="consumer-objects",
+        name="consumer-objects",
         features=["cxx"],
         source=bld.path.ant_glob(['src/**/*.cpp'],
                                  excl=['src/main.cpp']),
@@ -49,8 +49,8 @@ def build(bld):
         export_includes="src",
         )
 
-    bld(target="group-manager",
+    bld(target="consumer",
         features=["cxx", "cxxprogram"],
         source=bld.path.ant_glob(['src/main.cpp']),
-        use='group-manager-objects',
+        use='consumer-objects',
         )
