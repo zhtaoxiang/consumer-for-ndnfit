@@ -112,6 +112,7 @@ const uint8_t SIG_VALUE[] = {
         ndn::Face m_face;
         ndn::util::Scheduler m_scheduler;
         KeyChain m_keyChain;
+        Link link;
         ndn::gep::Consumer consumer;
         IdentityCertificate cert;
     };
@@ -119,8 +120,10 @@ const uint8_t SIG_VALUE[] = {
     SampleConsumer::SampleConsumer()
     : m_face(m_ioService) // Create face with io_service object
     , m_scheduler(m_ioService)
-    , consumer(m_face, Name("/org/openmhealth/zhehao/READ/fitness"), uName, DATABASE, NO_LINK, Link(USER_READ_PREFIX, {{10, "/a"}}))
+    , link(USER_READ_PREFIX, {{10, "/a"}})
+    , consumer(m_face, Name("/org/openmhealth/zhehao/READ/fitness"), uName, DATABASE, NO_LINK, ([](Link & in_link, KeyChain & in_keyChain){in_keyChain.sign(in_link); return in_link;}(link, m_keyChain)))
     {
+
         ndn::gep::RandomNumberGenerator rng;
         RsaKeyParams params;
         // generate user key
@@ -139,9 +142,9 @@ const uint8_t SIG_VALUE[] = {
     Signature sig(sigInfoBlock, sigValueBlock);
     cert.setSignature(sig);
         
-//        consumer.addDecryptionKey(uKeyName, fixtureUDKeyBuf);
-//        consumer.addDecryptionKey(Name("/U/ksk-123"), fixtureUDKeyBuf);
-//        consumer.addDecryptionKey(Name("/U/KEY/ksk-123/ID-CERT/123"), fixtureUDKeyBuf);
+        consumer.addDecryptionKey(uKeyName, fixtureUDKeyBuf);
+        consumer.addDecryptionKey(Name("/U/ksk-123"), fixtureUDKeyBuf);
+        consumer.addDecryptionKey(Name("/U/KEY/ksk-123/ID-CERT/123"), fixtureUDKeyBuf);
     }
 
     SampleConsumer::~SampleConsumer() {
@@ -156,8 +159,8 @@ const uint8_t SIG_VALUE[] = {
                                  RegisterPrefixSuccessCallback(),
                                  bind(&SampleConsumer::onRegisterFailed, this, _1, _2));
 
-//        m_scheduler.scheduleEvent(time::seconds(1), 
-//                                  bind(&SampleConsumer::requestAccess, this));
+        m_scheduler.scheduleEvent(time::seconds(1), 
+                                  bind(&SampleConsumer::requestAccess, this));
         m_scheduler.scheduleEvent(time::seconds(20), 
                                   bind(&SampleConsumer::consumeData, this));
         
